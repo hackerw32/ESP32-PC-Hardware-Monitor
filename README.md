@@ -1,70 +1,74 @@
-# ESP32-S3 PC Hardware Monitor (Pro Edition)
+# ESP32-S3 Smart PC Monitor OS (Dual Screen & Wi-Fi)
 
-A professional-grade physical dashboard for real-time monitoring of PC hardware statistics. This project features an automated installer, auto-port detection, and background execution with Windows startup integration.
+Ένα προηγμένο, αυτόνομο ταμπλό ελέγχου (smart dashboard) με δικό του Λειτουργικό Σύστημα (OS), το οποίο προβάλλει ασύρματα και σε πραγματικό χρόνο τα στατιστικά του υπολογιστή. Το project χρησιμοποιεί έναν μικροελεγκτή ESP32-S3 και δύο οθόνες OLED ταυτόχρονα. Λαμβάνει δεδομένα μέσω Wi-Fi (UDP πρωτόκολλο) από ένα Python script που τρέχει στο παρασκήνιο του PC, προσφέροντας απόλυτη ελευθερία από καλώδια δεδομένων.
 
-The system displays live CPU, RAM, and GPU usage with high-fidelity history graphs on a 1.3" OLED display, controlled by a 4x4 matrix keypad.
+Η πλοήγηση στα μενού, η πληκτρολόγηση κωδικών Wi-Fi (με σύστημα T9) και η ρύθμιση συναγερμών γίνεται αποκλειστικά μέσω ενός matrix πληκτρολογίου 4x4.
 
-## Key Features
-- Automated Setup: One-click installer for dependencies and startup configuration.
-- Auto-Detect: Python script automatically finds the correct ESP32 COM port.
-- Stealth Mode: Runs as a windowless background process (.pyw).
-- Live Graphs: 30-second rolling history for CPU, RAM, and GPU.
-- Persistent Logging: Data is collected even when switching between different display pages.
+## Νέες Δυνατότητες (Smart OS Features)
+* Ασύρματη Επικοινωνία (Wi-Fi UDP): Τέλος τα καλώδια! Το ESP συνδέεται στο τοπικό δίκτυο και δέχεται δεδομένα ασύρματα.
+* Διπλή Οθόνη (Dual OLED): Η μικρή οθόνη δείχνει μόνιμα τα βασικά Vitals (ή το "σκονάκι" του T9), ενώ η μεγάλη αναλαμβάνει το UI, τα μενού και τα γραφήματα.
+* Αληθινές Θερμοκρασίες & Συναγερμοί: Ενσωμάτωση με το LibreHardwareMonitor για πραγματική ανάγνωση θερμοκρασίας CPU/GPU. Αν ξεπεραστούν τα όρια, ηχεί οπτικοακουστικός συναγερμός.
+* T9 Πληκτρολόγιο & Μόνιμη Μνήμη (EEPROM): Εισαγωγή SSID και Password απευθείας από το Keypad (όπως στα παλιά κινητά) με live preview γραμμάτων. Οι ρυθμίσεις αποθηκεύονται μόνιμα!
+* Wake-On-LAN (WOL): Άνοιξε τον υπολογιστή σου ασύρματα, πατώντας απλά ένα κουμπί από το μενού του ESP32.
+* 28-Core Matrix & Γραφήματα: Ζωντανά γραφήματα ιστορικού 30 δευτερολέπτων για CPU/GPU/RAM, καθώς και εντυπωσιακή οθόνη με 28 ανεξάρτητες μπάρες για κάθε Thread του επεξεργαστή!
+* Ηχητικά Εφέ (Buzzer): Ήχοι εκκίνησης (Sci-Fi), επιβεβαίωσης (Mario Coin), συναγερμού και κλικ πλήκτρων.
+* OLED Screensaver: Αν το PC κλείσει, οι οθόνες μπαίνουν αυτόματα σε Sleep Mode (ZzZ...) μετά από 1 λεπτό για προστασία από burn-in.
 
-## Hardware Requirements
-- ESP32-S3 Development Board (e.g., N16R8)
-- 1.3" OLED Display (SH1106 I2C Driver)
-- 4x4 Matrix Keypad
-- USB Type-C Data Cable
+## Απαιτήσεις Υλικού (Hardware)
+* 1x Πλακέτα ανάπτυξης ESP32-S3 (π.χ. N16R8)
+* 1x Οθόνη OLED 1.3" (I2C - SH1106) - Κεντρική Οθόνη
+* 1x Οθόνη OLED 0.96" (I2C - SSD1306) - Μικρή Οθόνη
+* 1x Matrix Πληκτρολόγιο 4x4 Keypad
+* 1x Passive Buzzer (Παθητικό Ηχείο)
+* Καλώδια Jumper & Τροφοδοσία (π.χ. φορτιστής κινητού)
 
-## Wiring Diagram
+## Συνδεσμολογία (Pinout)
 
-### OLED Display (I2C)
-| OLED Pin | ESP32-S3 Pin | Description |
+Οθόνες OLED (I2C - 2 Κανάλια)
+| Εξάρτημα | ESP32-S3 Pin | Περιγραφή |
 | :--- | :--- | :--- |
-| VCC | 3V3 | Power Supply (3.3V) |
-| GND | GND | Ground |
-| SDA | GPIO 8 | Data Line |
-| SCL | GPIO 9 | Clock Line |
+| Μεγάλη OLED (1.3") | GPIO 8 (SDA) / GPIO 9 (SCL) | Κεντρικό UI & Γραφήματα |
+| Μικρή OLED (0.96") | GPIO 1 (SDA) / GPIO 2 (SCL) | Vitals & T9 Cheat-sheet |
+| VCC (Και οι 2) | 3V3 | Τροφοδοσία (Όχι 5V!) |
+| GND (Και οι 2) | GND | Γείωση |
 
-### 4x4 Keypad
-| Keypad Pin | ESP32-S3 Pin |
+Πληκτρολόγιο & Buzzer
+| Keypad/Buzzer | ESP32-S3 Pin |
 | :--- | :--- |
-| R1 (Row 1) | GPIO 10 |
-| R2 (Row 2) | GPIO 11 |
-| R3 (Row 3) | GPIO 12 |
-| R4 (Row 4) | GPIO 13 |
-| C1 (Col 1) | GPIO 15 |
-| C2 (Col 2) | GPIO 16 |
-| C3 (Col 3) | GPIO 17 |
-| C4 (Col 4) | GPIO 18 |
+| R1, R2, R3, R4 | GPIO 10, 11, 12, 13 |
+| C1, C2, C3, C4 | GPIO 15, 16, 17, 18 |
+| Buzzer (Θετικό) | GPIO 21 |
+| Buzzer (Αρνητικό)| GND |
 
-## Installation
+## Απαιτήσεις Λογισμικού (Software)
 
-### 1. Firmware (ESP32)
-1. Open the Arduino sketch.
-2. Install the following libraries via Library Manager: Adafruit GFX, Adafruit SH110X, and Keypad (by Mark Stanley).
-3. Select "ESP32S3 Dev Module" and your COM port.
-4. Upload the code to your ESP32-S3.
+### 1. Στον Υπολογιστή (Ο "Πομπός")
+1. Εγκατάστησε την Python 3.
+2. Κατέβασε και τρέξε το LibreHardwareMonitor. Σημαντικό: Πρέπει να εκτελείται ως Διαχειριστής (Administrator) στο παρασκήνιο για να δίνει πρόσβαση στις θερμοκρασίες.
+3. Άνοιξε τη Γραμμή Εντολών (cmd) και εγκατάστησε τις βιβλιοθήκες:
+   pip install psutil gputil wmi
 
-### 2. PC Software (Automated Setup)
-1. Ensure Python 3 is installed and added to your system PATH.
-2. Run the `setup.py` script provided in this repository.
-3. The installer will:
-   - Install required Python libraries (pyserial, psutil, gputil).
-   - Create an application folder in your User directory.
-   - Generate the background monitor script (pc_monitor.pyw).
-   - Create a Windows Startup shortcut for automatic execution.
+### 2. Στο ESP32-S3 (Ο "Δέκτης")
+Από τον Διαχειριστή Βιβλιοθηκών (Library Manager) του Arduino IDE, εγκατάστησε:
+* Adafruit GFX Library
+* Adafruit SH110X
+* Adafruit SSD1306
+* Keypad (του Mark Stanley)
 
-## Controls
-Navigate through the dashboard using the 4x4 Keypad:
-- [A] Summary View: Displays current CPU, RAM, and GPU usage percentages.
-- [B] CPU Graph: 30-second live history graph of CPU load.
-- [C] RAM Graph: 30-second live history graph of RAM usage.
-- [D] GPU Graph: 30-second live history graph of GPU load.
+## Οδηγίες Εγκατάστασης & Χρήσης
 
-## Project Structure
-- /Arduino_Code: Contains the C++ firmware for the ESP32-S3.
-- setup.py: The GUI-based installer for Windows.
-- pc_monitor.py: The source code for the PC-to-ESP32 data bridge.
-- README.md: Documentation and setup guide.
+1. Φόρτωση Κώδικα στο ESP32: Ανέβασε τον C++ κώδικα στο ESP32-S3 μέσω του Arduino IDE.
+2. Σύνδεση στο Wi-Fi: 
+   * Την πρώτη φορά, το ESP32 θα ζητήσει Wi-Fi. 
+   * Πάτα το `*` για να μπεις στο Μενού, πήγαινε Settings -> Wi-Fi Setup και γράψε το SSID και το Password σου με το T9 πληκτρολόγιο. 
+   * Το ESP32 θα κάνει επανεκκίνηση και θα σου δείξει τη νέα του IP Address στην οθόνη.
+3. Ρύθμιση της Python: Άνοιξε το Python script, βρες τη μεταβλητή ESP32_IP και βάλε την IP που σου έδειξε η οθόνη.
+4. Εκτέλεση: Τρέξε το Python script. Το ESP32 θα ξυπνήσει και θα αρχίσει να δείχνει τα στατιστικά του PC σου ασύρματα!
+
+## Χειρισμός & Λειτουργικό Σύστημα (OS)
+
+* `*` (Home): Επιστροφή στο Κεντρικό Μενού (App Menu).
+* `#` (Temp Setup / Caps Lock): Στο PC Monitor ανοίγει το μενού ρύθμισης μέγιστης θερμοκρασίας. Στο Wi-Fi setup λειτουργεί ως Caps Lock.
+* `0` (Session Reset / Space): Μηδενίζει τα καταγεγραμμένα Min/Max θερμοκρασιών. Στο T9 λειτουργεί ως κενό (Space).
+* `A` / `B` (Up / Down): Πλοήγηση στα μενού, ή εναλλαγή προβολών (Α=28 Cores, B=CPU Graph, κλπ). Στο T9 το 'A' είναι Backspace (Delete).
+* `D` (Enter / Save): Επιλογή μενού, ή αποθήκευση ρυθμίσεων στην EEPROM.
